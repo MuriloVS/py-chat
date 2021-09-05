@@ -4,10 +4,12 @@ import tkinter
 from tkinter.constants import DISABLED, NORMAL
 import tkinter.simpledialog
 import tkinter.scrolledtext
+import os
 
 
 LOCALHOST = '127.0.0.1'
 PORT = 6789
+CWD = os.getcwd()
 
 
 class Client():
@@ -31,6 +33,7 @@ class Client():
     def window_loop(self):
         self.main_window = tkinter.Tk()
         self.main_window.title('Server-Client Chat')
+        self.main_window.iconbitmap(os.path.join(CWD, 'chat.ico'))
         self.main_window.configure(bg='#D3D3D3')
 
         self.chat_label = tkinter.Label(
