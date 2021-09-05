@@ -17,7 +17,7 @@ def client_handler(client):
     while True:
         try:
             # recebe a mensagem enviada por um cliente
-            message = client.rcv(1024)
+            message = client.recv(1024)
             # e envia a todos os cliente conectados
             broadcast(message)
         except:
@@ -30,32 +30,27 @@ def client_handler(client):
             break
 
 
-def receive():
+def receive(server):
     while True:
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.bind((LOCALHOST, PORT))
-        server.listen()
-
         client, address = server.accept()
         clients.append(client)
-        print(f'{client} se conectou em {address}')
 
         # mensagem repassada ao cliente utilizando o socket dele
         client.send('NICK'.encode('utf-8'))
         nickname = client.recv(1024)
         nicknames.append(nickname)
-        print(f'O nickname de {client} é {nickname}.')
-        client.send('Você se conectou ao servidor.'.encode('utf-8'))
+        print(f'{nickname} se conectou em {address}')
 
         broadcast(f'{nickname} se conectou!\n'.encode('utf-8'))
+        client.send('Você se conectou ao servidor.\n'.encode('utf-8'))
 
         thread = threading.Thread(target=client_handler, args=(client, ))
         thread.start()
 
 
-def main():
-    receive()
-
-
 if __name__ == '__main__':
-    main()
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind((LOCALHOST, PORT))
+    server.listen(15)
+    print(f'Servidor rodando em {LOCALHOST} na porta {PORT}')
+    receive(server)
