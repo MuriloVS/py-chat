@@ -31,10 +31,10 @@ class Client():
     def window_loop(self):
         self.main_window = tkinter.Tk()
         self.main_window.title('Server-Client Chat')
-        self.main_window.configure(bg='lightgray')
+        self.main_window.configure(bg='#D3D3D3')
 
         self.chat_label = tkinter.Label(
-            self.main_window, text='Chat', bg='lightgray')
+            self.main_window, text='Chat', bg='#D3D3D3')
         self.chat_label.config(font=('Arial', 14))
         self.chat_label.grid(row=0, column=0, padx=2, pady=2)
 
