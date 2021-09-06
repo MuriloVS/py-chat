@@ -37,7 +37,7 @@ def client_handler(client):
             # removendo o cliente das listas
             index = clients.index(client)
             clients.pop(index)
-            colors.pop(index)
+            # colors.pop(index)
             nick = nicknames.pop(index)
             # e finalizando a conexão
             client.close()
@@ -50,10 +50,10 @@ def receive(server):
         client, address = server.accept()
         clients.append(client)
 
-        random_number = random.randint(0, 16777215)
-        hex_number = str(hex(random_number))
-        hex_number = '#' + hex_number[2:]
-        colors.append(hex_number)
+        # random_number = random.randint(0, 16777215)
+        # hex_number = str(hex(random_number))
+        # hex_number = '#' + hex_number[2:]
+        # colors.append(hex_number)
 
         # mensagem repassada ao cliente utilizando o socket dele
         client.send('NICK'.encode('utf-8'))

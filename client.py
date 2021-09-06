@@ -48,9 +48,11 @@ class Client():
         # evita que o chat seja alterado diretamente
         self.chat.config(state='disabled', width=60)
 
-        self.input = tkinter.Text(self.main_window, height=3)
+        self.input = tkinter.Text(self.main_window, height=1)
         self.input.grid(row=2, column=0, padx=7, pady=7)
         self.input.config(width=52)
+        self.input.focus_set()
+        self.input.bind('<Return>', lambda _: self.send())
 
         self.send_button = tkinter.Button(
             self.main_window, text='Enviar', command=self.send)
@@ -93,7 +95,6 @@ class Client():
                     self.chat.yview('end')  # scrol down
                     self.chat.config(state='disabled')
             except:
-
                 break
 
     def send(self):
