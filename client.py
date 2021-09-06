@@ -1,3 +1,4 @@
+from server import receive
 import threading
 import socket
 import tkinter
@@ -5,6 +6,7 @@ from tkinter.constants import DISABLED, NORMAL
 import tkinter.simpledialog
 import tkinter.scrolledtext
 import os
+import pickle
 
 
 LOCALHOST = '127.0.0.1'
@@ -44,11 +46,11 @@ class Client():
         self.chat = tkinter.scrolledtext.ScrolledText(self.main_window)
         self.chat.grid(row=1, column=0, padx=10, pady=7, columnspan=2)
         # evita que o chat seja alterado diretamente
-        self.chat.config(state='disabled')
+        self.chat.config(state='disabled', width=60)
 
-        self.input_label = tkinter.Label(self.main_window, text='Mensagem')
         self.input = tkinter.Text(self.main_window, height=3)
         self.input.grid(row=2, column=0, padx=7, pady=7)
+        self.input.config(width=52)
 
         self.send_button = tkinter.Button(
             self.main_window, text='Enviar', command=self.send)
@@ -68,14 +70,31 @@ class Client():
                 if self.server_message == 'NICK':
                     self.socket.send(self.nickname.encode('utf-8'))
                 elif self.interface:
+                    # self.socket.send('NICKNAMES'.encode('utf-8'))
+                    # self.received1 = self.socket.recv(4096)
+                    # self.nicknames = pickle.loads(self.received1)
+                    # print(self.nicknames)
+
+                    # self.socket.send('COLORS'.encode('utf-8'))
+                    # self.received2 = self.socket.recv(4096)
+                    # self.colors = pickle.loads(self.received2)
+                    # print(self.colors)
+
+                    # self.socket.send('DATA'.encode('utf-8'))
+                    # self.received3 = self.socket.recv(1024)
+                    # self.data = pickle.loads(self.received3)
+
+                    self.msg_nick = self.server_message.split(':')[0]
+
                     self.chat.config(state='normal')
-
-                    self.chat.insert('end', self.server_message)
+                    self.chat.insert('end', self.server_message, self.msg_nick)
+                    # self.chat.tag_config(
+                    #     self.msg_nick, foreground=self.data[self.msg_nick])
                     self.chat.yview('end')  # scrol down
-
                     self.chat.config(state='disabled')
             except:
-                self.close()
+
+                break
 
     def send(self):
         # ("1.0", "end") -> do início ao fim
