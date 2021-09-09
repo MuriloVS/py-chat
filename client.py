@@ -1,4 +1,3 @@
-from server import receive
 import threading
 import socket
 import tkinter
@@ -84,6 +83,7 @@ class Client():
                 # se for a flag 'NICK' devolve o apelido do usuário ao servidor
                 if self.server_message.decode('utf-8') == 'NICK':
                     self.socket.send(self.nickname.encode('utf-8'))
+                # se for a msg de desconexão envia a todos os usuários
                 elif self.server_message.decode('utf-8').endswith(' se conectou!\n') and self.interface:
                     self.chat.config(state='normal')
                     self.chat.insert('end', self.server_message)
@@ -91,6 +91,7 @@ class Client():
                     self.chat.yview('end')
                     # e trava novamente a escrita no scrolltext
                     self.chat.config(state='disabled')
+                # mensagens normais de chat
                 elif self.interface:
                     msg_color = self.server_message.decode(
                         'utf-8').split('--||--')
@@ -98,7 +99,9 @@ class Client():
                     self.color = msg_color[1]
                     # libera a escrita no widget de scrolltext
                     self.chat.config(state='normal')
+                    # o terceiro parâmetro é uma tag para identificar a mensagem
                     self.chat.insert('end', self.server_message, self.color)
+                    # aqui pegamos a mensagem com a tag já definida e alteramos a cor
                     self.chat.tag_config(self.color, foreground=self.color)
                     # scroll down - mensagens inseridas rolam a tela para baixo
                     self.chat.yview('end')

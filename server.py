@@ -1,7 +1,6 @@
 import threading
 import socket
 import random
-import pickle
 
 
 LOCALHOST = '127.0.0.1'
@@ -18,19 +17,21 @@ def broadcast(message):
 
 
 def client_handler(client, color):
+    # criando uma string com um separador e cor
     color = '--||--' + color
     color = bytes(color, encoding='utf-8')
 
     while True:
         try:
-            # recebe a mensagem enviada por um cliente
+            # recebe a mensagem enviada por um cliente e adicionando a cor
             message = client.recv(1024) + color
-            # e chama a função para repassar a todos os clientes
+            # chama a função para repassar a todos os clientes
             broadcast(message)
         except:
             # removendo o cliente das listas
             index = clients.index(client)
             clients.pop(index)
+            colors.pop(index)
             nick = nicknames.pop(index)
             # e finalizando a conexão
             client.close()
@@ -39,6 +40,8 @@ def client_handler(client, color):
 
 
 def create_color():
+    # cria o hex de uma cor qualquer
+    # é a cor do texto do usuário no chat
     random_number = random.randint(0, 16777215)
     hex_number = str(hex(random_number))
     hex_number = '#' + hex_number[2:]
@@ -47,8 +50,8 @@ def create_color():
 
 def receive(server):
     while True:
-        # accept inicia a conexão com o servidor, retornando dados
-        # do cliente e endereço/porta usados
+        # accept inicia a conexão com o servidor
+        # retornando dados do cliente e endereço/porta usados
         client, address = server.accept()
         clients.append(client)
 
