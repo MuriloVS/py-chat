@@ -80,14 +80,26 @@ class Client():
         while self.running:
             try:
                 # recebe as mensagens do servidor
-                self.server_message = self.socket.recv(1024).decode('utf-8')
+                self.server_message = self.socket.recv(1024)
                 # se for a flag 'NICK' devolve o apelido do usuário ao servidor
-                if self.server_message == 'NICK':
+                if self.server_message.decode('utf-8') == 'NICK':
                     self.socket.send(self.nickname.encode('utf-8'))
-                elif self.interface:
-                    # libera a escrita no widget de scrolltext
+                elif self.server_message.decode('utf-8').endswith(' se conectou!\n') and self.interface:
                     self.chat.config(state='normal')
                     self.chat.insert('end', self.server_message)
+                    # scroll down - mensagens inseridas rolam a tela para baixo
+                    self.chat.yview('end')
+                    # e trava novamente a escrita no scrolltext
+                    self.chat.config(state='disabled')
+                elif self.interface:
+                    msg_color = self.server_message.decode(
+                        'utf-8').split('--||--')
+                    self.server_message = msg_color[0]
+                    self.color = msg_color[1]
+                    # libera a escrita no widget de scrolltext
+                    self.chat.config(state='normal')
+                    self.chat.insert('end', self.server_message, self.color)
+                    self.chat.tag_config(self.color, foreground=self.color)
                     # scroll down - mensagens inseridas rolam a tela para baixo
                     self.chat.yview('end')
                     # e trava novamente a escrita no scrolltext
