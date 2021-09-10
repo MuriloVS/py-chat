@@ -42,21 +42,33 @@ class Client():
         self.main_window.iconbitmap(os.path.join(CWD, 'chat.ico'))
         self.main_window.configure(bg='#D3D3D3')
 
+        # configurações para melhorar a responsividade da janela
+        tkinter.Grid.columnconfigure(self.main_window, index=0, weight=0)
+        tkinter.Grid.columnconfigure(self.main_window, index=1, weight=1)
+        tkinter.Grid.rowconfigure(self.main_window, index=0, weight=0)
+        tkinter.Grid.rowconfigure(self.main_window, index=1, weight=1)
+        tkinter.Grid.rowconfigure(self.main_window, index=2, weight=0)
+
         # título acima do histórico de mensagens
         self.chat_label = tkinter.Label(
             self.main_window, text='Chat Multiusuário', bg='#D3D3D3')
         self.chat_label.config(font=('Arial', 14))
-        self.chat_label.grid(row=0, column=0, padx=2, pady=2)
+        self.chat_label.grid(row=0, column=0, columnspan=2,
+                             padx=10, pady=2, sticky='w')
 
         # áre com o histórico de mensagens
         self.chat = tkinter.scrolledtext.ScrolledText(self.main_window)
-        self.chat.grid(row=1, column=0, padx=10, pady=7, columnspan=2)
+        self.chat.grid(row=1, column=1, padx=10, pady=7,
+                       columnspan=2, sticky='nsew')
+        # self.chat.grid_columnconfigure(0, weight=1)
         # evita que o chat seja alterado diretamente
         self.chat.config(state='disabled', width=60)
 
         # local onde o usuário pode digitar o seu texto
         self.input = tkinter.Text(self.main_window, height=1)
-        self.input.grid(row=2, column=0, padx=7, pady=7)
+        self.input.grid(row=2, column=1, columnspan=2,
+                        padx=10, pady=8, sticky='nw')
+        # self.input.grid_columnconfigure(0, weight=1)
         self.input.config(width=52)
         self.input.focus_set()
         # víncula a tecla 'enter/return' à função de envio de msg
@@ -66,7 +78,7 @@ class Client():
         self.send_button = tkinter.Button(
             self.main_window, text='Enviar', command=self.send)
         self.send_button.config(font=('Arial', 12))
-        self.send_button.grid(row=2, column=1, padx=7, pady=7)
+        self.send_button.grid(row=2, column=2, padx=7, pady=7, sticky='e')
 
         self.interface = True
 
@@ -85,6 +97,13 @@ class Client():
                     self.socket.send(self.nickname.encode('utf-8'))
                 # se for a msg de desconexão envia a todos os usuários
                 elif self.server_message.decode('utf-8').endswith(' se conectou!\n') and self.interface:
+                    self.chat.config(state='normal')
+                    self.chat.insert('end', self.server_message)
+                    # scroll down - mensagens inseridas rolam a tela para baixo
+                    self.chat.yview('end')
+                    # e trava novamente a escrita no scrolltext
+                    self.chat.config(state='disabled')
+                elif self.server_message.decode('utf-8').endswith(' se desconectou!\n') and self.interface:
                     self.chat.config(state='normal')
                     self.chat.insert('end', self.server_message)
                     # scroll down - mensagens inseridas rolam a tela para baixo
