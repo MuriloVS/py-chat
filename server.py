@@ -1,3 +1,4 @@
+from math import exp
 import threading
 import socket
 import random
@@ -9,6 +10,7 @@ PORT = 6789
 clients = []
 nicknames = []
 colors = []
+sep = '--||--'
 
 
 def broadcast(message):
@@ -17,16 +19,27 @@ def broadcast(message):
 
 
 def client_handler(client, color):
-    # criando uma string com um separador e cor
-    color = '--||--' + color
+    # criando uma string com um separador e a cor
+    color = sep + color
     color = bytes(color, encoding='utf-8')
 
     while True:
         try:
-            # recebe a mensagem enviada por um cliente e adicionando a cor
-            message = client.recv(1024) + color
-            # chama a função para repassar a todos os clientes
-            broadcast(message)
+            # recebe a mensagem enviada por um cliente
+            message = client.recv(1024)
+            msg = str(message.decode('utf-8'))
+
+            if msg.startswith('/nick'):
+                newnick = msg.replace('/nick', "")
+                index = clients.index(client)
+                msg = f'NEWNICK-{nicknames[index]} alterou o seu apelido para {newnick}!'
+                print(msg)
+                broadcast(msg.encode('utf-8'))
+                nicknames[index] = newnick
+            else:
+                message = message + color
+                # chama a função para repassar a todos os clientes
+                broadcast(message)
         except:
             # removendo o cliente das listas
             index = clients.index(client)
@@ -50,26 +63,30 @@ def create_color():
 
 def receive(server):
     while True:
-        # accept inicia a conexão com o servidor
-        # retornando dados do cliente e endereço/porta usados
-        client, address = server.accept()
-        clients.append(client)
+        try:
+            # accept inicia a conexão com o servidor
+            # retornando dados do cliente e endereço/porta usados
+            client, address = server.accept()
+            clients.append(client)
 
-        color = create_color()
-        colors.append(color)
+            color = create_color()
+            colors.append(color)
 
-        # mensagem repassada ao cliente utilizando o socket dele
-        # para solicitar o nickname
-        client.send('NICK'.encode('utf-8'))
-        nickname = client.recv(1024).decode('utf-8')
-        nicknames.append(nickname)
-        print(f'{nickname} se conectou em {address}')
-        broadcast(f'{nickname} se conectou!\n'.encode('utf-8'))
+            # mensagem repassada ao cliente utilizando o socket dele
+            # para solicitar o nickname
+            client.send('NICK'.encode('utf-8'))
+            nickname = client.recv(1024).decode('utf-8')
+            nicknames.append(nickname)
+            print(f'{nickname} se conectou em {address}')
+            broadcast(f'{nickname} se conectou!\n'.encode('utf-8'))
 
-        # feita a conexão com o cliente iniciamos uma thread para
-        # lidar com esta conexão
-        thread = threading.Thread(target=client_handler, args=(client, color))
-        thread.start()
+            # feita a conexão com o cliente iniciamos uma thread para
+            # lidar com esta conexão
+            thread = threading.Thread(
+                target=client_handler, args=(client, color))
+            thread.start()
+        except:
+            exit(0)
 
 
 def create_server():

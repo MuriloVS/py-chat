@@ -4,12 +4,15 @@ import tkinter
 from tkinter.constants import DISABLED, NORMAL
 import tkinter.simpledialog
 import tkinter.scrolledtext
+import datetime
+import random
 import os
 import gc
 
 
 LOCALHOST = '127.0.0.1'
 PORT = 6789
+sep = '--||--'
 CWD = os.getcwd()
 
 
@@ -21,8 +24,9 @@ class Client():
         # pequeno popup para que o usuário digite o seu apelido
         self.nick_popup = tkinter.Tk()
         self.nick_popup.withdraw()
+        temp = 'user_' + str(random.randint(0, 999999999))
         self.nickname = tkinter.simpledialog.askstring(
-            'Apelido', 'Escolha o seu apelido', parent=self.nick_popup)
+            title='Apelido', prompt='Escolha o seu apelido', initialvalue=temp, parent=self.nick_popup)
 
         # variáveis para controlar a exeução do programa e a GUI
         self.running = True
@@ -66,8 +70,8 @@ class Client():
 
         # local onde o usuário pode digitar o seu texto
         self.input = tkinter.Text(self.main_window, height=1)
-        self.input.grid(row=2, column=1, columnspan=2,
-                        padx=10, pady=8, sticky='nw')
+        self.input.grid(row=2, column=1,
+                        padx=10, pady=8, sticky='nwe')
         # self.input.grid_columnconfigure(0, weight=1)
         self.input.config(width=52)
         self.input.focus_set()
@@ -92,51 +96,71 @@ class Client():
             try:
                 # recebe as mensagens do servidor
                 self.server_message = self.socket.recv(1024)
+                print(self.server_message)
                 # se for a flag 'NICK' devolve o apelido do usuário ao servidor
                 if self.server_message.decode('utf-8') == 'NICK':
                     self.socket.send(self.nickname.encode('utf-8'))
-                # se for a msg de desconexão envia a todos os usuários
-                elif self.server_message.decode('utf-8').endswith(' se conectou!\n') and self.interface:
-                    self.chat.config(state='normal')
-                    self.chat.insert('end', self.server_message)
-                    # scroll down - mensagens inseridas rolam a tela para baixo
-                    self.chat.yview('end')
-                    # e trava novamente a escrita no scrolltext
-                    self.chat.config(state='disabled')
-                elif self.server_message.decode('utf-8').endswith(' se desconectou!\n') and self.interface:
-                    self.chat.config(state='normal')
-                    self.chat.insert('end', self.server_message)
-                    # scroll down - mensagens inseridas rolam a tela para baixo
-                    self.chat.yview('end')
-                    # e trava novamente a escrita no scrolltext
-                    self.chat.config(state='disabled')
-                # mensagens normais de chat
+                # interface pronta
                 elif self.interface:
-                    msg_color = self.server_message.decode(
-                        'utf-8').split('--||--')
-                    self.server_message = msg_color[0]
-                    self.color = msg_color[1]
-                    # libera a escrita no widget de scrolltext
-                    self.chat.config(state='normal')
-                    # o terceiro parâmetro é uma tag para identificar a mensagem
-                    self.chat.insert('end', self.server_message, self.color)
-                    # aqui pegamos a mensagem com a tag já definida e alteramos a cor
-                    self.chat.tag_config(self.color, foreground=self.color)
-                    # scroll down - mensagens inseridas rolam a tela para baixo
-                    self.chat.yview('end')
-                    # e trava novamente a escrita no scrolltext
-                    self.chat.config(state='disabled')
+                    # mensagem quando o usuário se conectar
+                    if self.server_message.decode('utf-8').endswith(' se conectou!\n'):
+                        self.chat.config(state='normal')
+                        self.chat.insert('end', self.server_message)
+                        self.chat.yview('end')
+                        self.chat.config(state='disabled')
+                    # mensagem quando o usuário se desconectar
+                    elif self.server_message.decode('utf-8').endswith(' se desconectou!\n'):
+                        self.chat.config(state='normal')
+                        self.chat.insert('end', self.server_message)
+                        self.chat.yview('end')
+                        self.chat.config(state='disabled')
+                    # mensagem quando o usuário mudar o apelido
+                    elif self.server_message.decode('utf-8').startswith('NEWNICK-'):
+                        self.server_message = self.server_message.decode(
+                            'utf-8').replace('NEWNICK-', "")
+                        self.chat.config(state='normal')
+                        self.chat.insert('end', self.server_message + '\n')
+                        self.chat.yview('end')
+                        self.chat.config(state='disabled')
+                    # mensagens normais de conversa entre os usuários
+                    else:
+                        msg_color = self.server_message.decode(
+                            'utf-8').split(sep)
+                        self.server_message = msg_color[0]
+                        self.color = msg_color[1]
+                        # libera a escrita no widget de scrolltext
+                        self.chat.config(state='normal')
+                        # o terceiro parâmetro é uma tag para identificar a mensagem
+                        self.chat.insert(
+                            'end', self.server_message, self.color)
+                        # aqui pegamos a mensagem com a tag já definida e alteramos a cor
+                        self.chat.tag_config(self.color, foreground=self.color)
+                        # scroll down - mensagens inseridas rolam a tela para baixo
+                        self.chat.yview('end')
+                        # e trava novamente a escrita no scrolltext
+                        self.chat.config(state='disabled')
             except:
                 break
 
     def send(self):
         # ("1.0", "end") -> do início ao fim
         self.user_input = self.input.get('1.0', 'end').strip()
-        # se clicar enviar ou enter nada é enviado
+        # se clicar enviar ou enter sem input nada é enviado
         if len(self.user_input) > 0:
-            self.user_message = f'{self.nickname}: {self.user_input}\n'
-            self.socket.send(self.user_message.encode('utf-8'))
-            # limpando o input após o envio da mensagem
+            # trocando o nick do usuário
+            if self.user_input[0:6] == '/nick ':
+                newnick = self.user_input.split(' ', 1)
+                self.nickname = newnick[1]
+                # newnick[0] = '/nick' e newnick[1] = o novo nick do user
+                self.socket.send((newnick[0]+newnick[1]).encode('utf-8'))
+            else:
+                # msg normal de chat
+                now = datetime.datetime.now()
+                now = now.strftime("%d/%m/%y %H:%M:%S")
+                self.user_message = f'{now} {self.nickname}: {self.user_input}\n'
+                self.socket.send(self.user_message.encode('utf-8'))
+
+            # limpando o input após a entrada do usuário
             self.input.delete("1.0", "end")
 
     def close(self):
