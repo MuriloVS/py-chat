@@ -96,7 +96,6 @@ class Client():
             try:
                 # recebe as mensagens do servidor
                 self.server_message = self.socket.recv(1024)
-                print(self.server_message)
                 # se for a flag 'NICK' devolve o apelido do usuário ao servidor
                 if self.server_message.decode('utf-8') == 'NICK':
                     self.socket.send(self.nickname.encode('utf-8'))
@@ -151,6 +150,7 @@ class Client():
             if self.user_input[0:6] == '/nick ':
                 newnick = self.user_input.split(' ', 1)
                 self.nickname = newnick[1]
+                self.main_window.title(f'Chat Client do {self.nickname}')
                 # newnick[0] = '/nick' e newnick[1] = o novo nick do user
                 self.socket.send((newnick[0]+newnick[1]).encode('utf-8'))
             else:
