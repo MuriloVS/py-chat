@@ -1,4 +1,3 @@
-from math import exp
 import threading
 import socket
 import random
@@ -69,6 +68,7 @@ def receive(server):
             client, address = server.accept()
             clients.append(client)
 
+            # criando a cor aleatória do usuário
             color = create_color()
             colors.append(color)
 

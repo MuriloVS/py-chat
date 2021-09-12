@@ -55,7 +55,7 @@ class Client():
 
         # título acima do histórico de mensagens
         self.chat_label = tkinter.Label(
-            self.main_window, text='Chat Multiusuário', bg='#D3D3D3')
+            self.main_window, text='Sala de bate-papo', bg='#D3D3D3')
         self.chat_label.config(font=('Arial', 14))
         self.chat_label.grid(row=0, column=0, columnspan=2,
                              padx=10, pady=2, sticky='w')
@@ -147,7 +147,7 @@ class Client():
         # se clicar enviar ou enter sem input nada é enviado
         if len(self.user_input) > 0:
             # trocando o nick do usuário
-            if self.user_input[0:6] == '/nick ':
+            if self.user_input.startswith('/nick '):
                 newnick = self.user_input.split(' ', 1)
                 self.nickname = newnick[1]
                 self.main_window.title(f'Chat Client do {self.nickname}')
